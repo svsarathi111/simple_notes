@@ -8,9 +8,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  ANDROID_SDK_ROOT: ${{ android.sdk_root }}
-
 jobs:
   build-debug:
     name: Build Debug APK
@@ -18,10 +15,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -29,15 +26,15 @@ jobs:
     - name: Install Node dependencies
       run: npm install
     
-    - name: Set up JDK
-      uses: actions/setup-java@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '11'
         cache: gradle
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
       with:
         api-level: 31
         ndk-version: '24.0.8215888'
@@ -55,23 +52,24 @@ jobs:
         ./gradlew assembleDebug --stacktrace
     
     - name: Upload debug APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app-debug-apk
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+        if-no-files-found: error
 
   build-release:
-    name: Build Release APK (Unsigned)
+    name: Build Release APK
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -79,15 +77,15 @@ jobs:
     - name: Install Node dependencies
       run: npm install
     
-    - name: Set up JDK
-      uses: actions/setup-java@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '11'
         cache: gradle
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
       with:
         api-level: 31
         ndk-version: '24.0.8215888'
@@ -99,20 +97,21 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x android/gradlew
     
-    - name: Build release APK (unsigned)
+    - name: Build release APK
       run: |
         cd android
         ./gradlew assembleRelease --stacktrace
     
     - name: Upload release APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: app-release-unsigned-apk
+        name: app-release-apk
         path: android/app/build/outputs/apk/release/app-release-unsigned.apk
         retention-days: 30
+        if-no-files-found: error
     
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: android/app/build/outputs/apk/release/app-release-unsigned.apk
         draft: false
@@ -122,16 +121,16 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-aab:
-    name: Build App Bundle (for Google Play)
+    name: Build App Bundle (AAB for Google Play)
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
@@ -139,15 +138,15 @@ jobs:
     - name: Install Node dependencies
       run: npm install
     
-    - name: Set up JDK
-      uses: actions/setup-java@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '11'
         cache: gradle
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
       with:
         api-level: 31
         ndk-version: '24.0.8215888'
@@ -165,17 +164,19 @@ jobs:
         ./gradlew bundleRelease --stacktrace
     
     - name: Upload App Bundle
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app-bundle-release
         path: android/app/build/outputs/bundle/release/app-release.aab
         retention-days: 30
+        if-no-files-found: error
     
     - name: Upload AAB to GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: android/app/build/outputs/bundle/release/app-release.aab
         draft: false
         prerelease: false
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
