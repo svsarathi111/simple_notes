@@ -1,0 +1,49 @@
+STICKY NOTES MOBILE APP — QUICKSTART
+=====================================
+
+1. EXTRACT THE ZIP
+   unzip sticky-notes-app.zip
+   cd notepad-app
+
+2. INSTALL DEPENDENCIES
+   npm install
+   (This takes 1-2 minutes)
+
+3. TEST IN BROWSER (optional)
+   npm run dev
+   Open http://localhost:8000 in your browser
+
+4. BUILD FOR DEVICE
+
+   iOS (requires Mac + Xcode):
+   ─────────────────────────
+   npm run sync
+   npm run open:ios
+   → Xcode opens with your iOS project
+   → Select "App" → "iPhone simulator" (or your device)
+   → Click Play button to build & run
+
+   Android (requires Android Studio):
+   ──────────────────────────────────
+   npm run sync
+   npm run open:android
+   → Android Studio opens with your Android project
+   → Connect an Android phone or start the emulator
+   → Click Play button to build & run
+
+5. WHAT YOU GET
+   • 3 sticky notes (Thoughts, To Do, Ideas)
+   • Undo/redo on each note
+   • Rich text (bold, italic, fonts, colors)
+   • Bulleted and numbered lists
+   • 7 preset colors + custom picker
+   • Autosave (data survives app restart)
+   • Mobile-optimized UI with haptics
+
+6. NEED HELP?
+   Read SETUP.md for detailed instructions:
+   • Deploying to App Store / Google Play
+   • Customizing the app (adding notes, colors, etc.)
+   • Troubleshooting
+
+THAT'S IT! Start building. 🚀
