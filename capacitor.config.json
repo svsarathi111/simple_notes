@@ -1,0 +1,20 @@
+{
+  "appId": "com.stickynotesapp.notepad",
+  "appName": "Sticky Notes",
+  "webDir": "www",
+  "server": {
+    "url": "http://192.168.1.100:8000",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "backgroundColor": "#fdf6e3"
+  }
+}
