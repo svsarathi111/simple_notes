@@ -1,0 +1,181 @@
+name: Build & Release Android App
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  ANDROID_SDK_ROOT: ${{ android.sdk_root }}
+
+jobs:
+  build-debug:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Node dependencies
+      run: npm install
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        cache: gradle
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 31
+        ndk-version: '24.0.8215888'
+        build-tools-version: '33.0.0'
+    
+    - name: Sync Capacitor to Android
+      run: npx capacitor sync android
+    
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+    
+    - name: Build debug APK
+      run: |
+        cd android
+        ./gradlew assembleDebug --stacktrace
+    
+    - name: Upload debug APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+
+  build-release:
+    name: Build Release APK (Unsigned)
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Node dependencies
+      run: npm install
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        cache: gradle
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 31
+        ndk-version: '24.0.8215888'
+        build-tools-version: '33.0.0'
+    
+    - name: Sync Capacitor to Android
+      run: npx capacitor sync android
+    
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+    
+    - name: Build release APK (unsigned)
+      run: |
+        cd android
+        ./gradlew assembleRelease --stacktrace
+    
+    - name: Upload release APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release-unsigned-apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        retention-days: 30
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-aab:
+    name: Build App Bundle (for Google Play)
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Node dependencies
+      run: npm install
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        cache: gradle
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 31
+        ndk-version: '24.0.8215888'
+        build-tools-version: '33.0.0'
+    
+    - name: Sync Capacitor to Android
+      run: npx capacitor sync android
+    
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+    
+    - name: Build App Bundle (AAB)
+      run: |
+        cd android
+        ./gradlew bundleRelease --stacktrace
+    
+    - name: Upload App Bundle
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-bundle-release
+        path: android/app/build/outputs/bundle/release/app-release.aab
+        retention-days: 30
+    
+    - name: Upload AAB to GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: android/app/build/outputs/bundle/release/app-release.aab
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
